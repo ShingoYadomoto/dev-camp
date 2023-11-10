@@ -54,8 +54,10 @@ func (g *Game) init() {
 	g.score = 0
 	g.lastPaiX = 0
 	for i := 0; i < maxTatsuCount; i++ {
+		image, fu := generateRandomTatsu()
 		g.tatsus[i] = &tatsu{
-			i: generateRandomTatsu(),
+			i:         image,
+			correctFu: fu,
 		}
 	}
 	g.ground = &ground{y: groundY - 10}

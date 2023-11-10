@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	_ "embed"
+	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"golang.org/x/image/font"
@@ -12,6 +13,7 @@ import (
 	"image/draw"
 	"log"
 	"math/rand"
+	"path"
 	"time"
 )
 
@@ -78,10 +80,10 @@ func init() {
 	})
 }
 
-func generateRandomTatsu() *ebiten.Image {
-	tatsuImg = ebiten.NewImageFromImage(joinImages(generateRandomTatsuImages()...))
+func generateRandomTatsu() (*ebiten.Image, uint8) {
+	img, fu := generateRandomTatsuImage()
 
-	return tatsuImg
+	return ebiten.NewImageFromImage(img), fu
 }
 
 // generate random tatsu
@@ -96,31 +98,63 @@ const (
 	TatsuTypeMinko
 	TatsuTypeAnkan
 	TatsuTypeMinkan
+	TatsuTypeHead
+	TatsuTypeMachi
 )
 
-func generateRandomTatsuImages() []image.Image {
-	manzu11, _ := files.ReadFile("images/pai/manzu/vertical/1.png")
-
-	img, _, err := image.Decode(bytes.NewReader(manzu11))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	manzu11H, _ := files.ReadFile("images/pai/manzu/horizontal/1.png")
-
-	img2, _, err := image.Decode(bytes.NewReader(manzu11H))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return []image.Image{img, img2, img}
+func RandomTatsuType() TatsuType {
+	rand.Seed(time.Now().UnixNano())
+	types := []TatsuType{TatsuTypeShuntsu, TatsuTypeAnko, TatsuTypeMinko, TatsuTypeAnkan, TatsuTypeMinkan, TatsuTypeHead, TatsuTypeMachi}
+	return types[rand.Intn(len(types))]
 }
 
 type (
 	PaiType  uint8
 	PaiIndex uint8
 	PaiDir   uint8
+
+	Pai struct {
+		Type  PaiType
+		Index PaiIndex
+		Dir   PaiDir
+	}
 )
+
+func (p Pai) Image() image.Image {
+	pathList := []string{"images", "pai"}
+
+	switch p.Type {
+	case PaiTypeZi:
+		pathList = append(pathList, "zi")
+	case PaiTypeManzu:
+		pathList = append(pathList, "manzu")
+	case PaiTypeSozu:
+		pathList = append(pathList, "sozu")
+	case PaiTypePinzu:
+		pathList = append(pathList, "pinzu")
+	}
+
+	switch p.Dir {
+	case PaiDirHorizontal:
+		pathList = append(pathList, "horizontal")
+	case PaiDirVertical:
+		pathList = append(pathList, "vertical")
+	}
+
+	pathList = append(pathList, fmt.Sprintf("%d.png", p.Index))
+
+	imgByte, err := files.ReadFile(path.Join(pathList...))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	img, _, err := image.Decode(bytes.NewReader(imgByte))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return img
+}
 
 const (
 	PaiTypeZi PaiType = iota + 1
@@ -129,8 +163,14 @@ const (
 	PaiTypePinzu
 )
 
+func RandomPaiType() PaiType {
+	rand.Seed(time.Now().UnixNano())
+	types := []PaiType{PaiTypeZi, PaiTypeManzu, PaiTypeSozu, PaiTypePinzu}
+	return types[rand.Intn(len(types))]
+}
+
 const (
-	PaiDirHorizon PaiDir = iota + 1
+	PaiDirHorizontal PaiDir = iota + 1
 	PaiDirVertical
 )
 
@@ -145,3 +185,205 @@ const (
 	PaiIndex8
 	PaiIndex9
 )
+
+func RandomPaiIndex() PaiIndex {
+	rand.Seed(time.Now().UnixNano())
+	indexes := []PaiIndex{
+		PaiIndex1, PaiIndex2, PaiIndex3, PaiIndex4, PaiIndex5,
+		PaiIndex6, PaiIndex7, PaiIndex8, PaiIndex9,
+	}
+	return indexes[rand.Intn(len(indexes))]
+}
+
+func generateRandomTatsuImage() (image.Image, uint8) {
+	var (
+		pl = make([]Pai, 0, 4)
+		fu uint8
+
+		setShuntsu = func() {
+			var (
+				paiType    PaiType
+				startIndex PaiIndex
+			)
+
+			for {
+				paiType = RandomPaiType()
+				if paiType != PaiTypeZi {
+					break
+				}
+			}
+
+			for {
+				startIndex = RandomPaiIndex()
+				if PaiIndex7 >= startIndex {
+					break
+				}
+			}
+
+			for i := 0; i < 3; i++ {
+				pl = append(pl, Pai{
+					Type:  paiType,
+					Index: startIndex + PaiIndex(i),
+					Dir:   PaiDirVertical,
+				})
+			}
+		}
+
+		setKotsuOrKantsu = func(tatsuType TatsuType) (isYaochu bool) {
+			var (
+				paiType = RandomPaiType()
+				index   PaiIndex
+			)
+
+			for {
+				index = RandomPaiIndex()
+				if paiType != PaiTypeZi {
+					break
+				}
+
+				if index <= PaiIndex7 {
+					break
+				}
+			}
+
+			if paiType == PaiTypeZi || (index == PaiIndex1 || index == PaiIndex9) {
+				isYaochu = true
+			}
+
+			paiNum := 0
+			switch tatsuType {
+			case TatsuTypeAnko, TatsuTypeMinko:
+				paiNum = 3
+			case TatsuTypeAnkan, TatsuTypeMinkan:
+				paiNum = 4
+			default:
+				panic("invalid tatsu type")
+			}
+
+			for i := 0; i < paiNum; i++ {
+				dir := PaiDirVertical
+				isFulou := tatsuType == TatsuTypeMinko || tatsuType == TatsuTypeMinkan
+				if isFulou && i == 1 {
+					dir = PaiDirHorizontal
+				}
+
+				pl = append(pl, Pai{
+					Type:  paiType,
+					Index: index,
+					Dir:   dir,
+				})
+			}
+			return
+		}
+
+		setHead = func() (isYakuhai bool) {
+			var (
+				paiType = RandomPaiType()
+				index   PaiIndex
+			)
+
+			for {
+				index = RandomPaiIndex()
+				if paiType != PaiTypeZi {
+					break
+				}
+
+				if index <= PaiIndex7 {
+					break
+				}
+			}
+
+			// ToDo: 自風場風によって変える
+			if paiType == PaiTypeZi {
+				isYakuhai = true
+			}
+
+			for i := 0; i < 2; i++ {
+				pl = append(pl, Pai{
+					Type:  paiType,
+					Index: index + PaiIndex(i),
+					Dir:   PaiDirVertical,
+				})
+			}
+
+			return
+		}
+
+		setMachi = func() (isRyanmen bool) {
+			setShuntsu()
+
+			rand.Seed(time.Now().UnixNano())
+			indexes := make([]PaiIndex, len(pl))
+			for i, p := range pl {
+				indexes[i] = p.Index
+			}
+
+			removeIndex := rand.Intn(len(indexes))
+			pl = append(pl[0:removeIndex], pl[removeIndex:]...)
+
+			switch removeIndex {
+			case 0:
+				if pl[removeIndex].Index != PaiIndex1 {
+					isRyanmen = true
+				}
+			case 2:
+				if pl[removeIndex].Index != PaiIndex9 {
+					isRyanmen = true
+				}
+			}
+
+			return
+		}
+	)
+
+	tatsuType := RandomTatsuType()
+	switch tatsuType {
+	case TatsuTypeShuntsu:
+		setShuntsu()
+	case TatsuTypeMinko:
+		isYaochu := setKotsuOrKantsu(tatsuType)
+		if isYaochu {
+			fu = 4
+		} else {
+			fu = 2
+		}
+	case TatsuTypeAnko:
+		isYaochu := setKotsuOrKantsu(tatsuType)
+		if isYaochu {
+			fu = 8
+		} else {
+			fu = 4
+		}
+	case TatsuTypeMinkan:
+		isYaochu := setKotsuOrKantsu(tatsuType)
+		if isYaochu {
+			fu = 16
+		} else {
+			fu = 8
+		}
+	case TatsuTypeAnkan:
+		isYaochu := setKotsuOrKantsu(tatsuType)
+		if isYaochu {
+			fu = 32
+		} else {
+			fu = 16
+		}
+	case TatsuTypeHead:
+		isYakuhai := setHead()
+		if isYakuhai {
+			fu = 2
+		}
+	case TatsuTypeMachi:
+		isRyanmen := setMachi()
+		if !isRyanmen {
+			fu = 2
+		}
+	}
+
+	images := make([]image.Image, len(pl))
+	for i, p := range pl {
+		images[i] = p.Image()
+	}
+
+	return joinImages(images...), fu
+}

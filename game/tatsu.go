@@ -16,7 +16,7 @@ type tatsu struct {
 	x         int
 	y         int
 	visible   bool
-	correctFu int
+	correctFu uint8
 }
 
 func (t *tatsu) move(speed int) {
