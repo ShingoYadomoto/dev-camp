@@ -1,5 +1,7 @@
 package game
 
+import "github.com/hajimehoshi/ebiten/v2"
+
 const (
 	tatsuWidth  = 66
 	tatsuHeghit = 99
@@ -9,9 +11,12 @@ const (
 )
 
 type tatsu struct {
-	x       int
-	y       int
-	visible bool
+	i *ebiten.Image
+
+	x         int
+	y         int
+	visible   bool
+	correctFu int
 }
 
 func (t *tatsu) move(speed int) {

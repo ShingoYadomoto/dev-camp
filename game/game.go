@@ -54,7 +54,9 @@ func (g *Game) init() {
 	g.score = 0
 	g.lastPaiX = 0
 	for i := 0; i < maxTatsuCount; i++ {
-		g.tatsus[i] = &tatsu{}
+		g.tatsus[i] = &tatsu{
+			i: generateRandomTatsu(),
+		}
 	}
 	g.ground = &ground{y: groundY - 10}
 }
@@ -145,7 +147,7 @@ func (g *Game) drawTatsus(screen *ebiten.Image) {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(t.x), float64(t.y))
 			op.Filter = ebiten.FilterLinear
-			screen.DrawImage(generateRandomTatsu(), op)
+			screen.DrawImage(t.i, op)
 		}
 	}
 }

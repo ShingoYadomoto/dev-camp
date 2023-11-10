@@ -79,6 +79,26 @@ func init() {
 }
 
 func generateRandomTatsu() *ebiten.Image {
+	tatsuImg = ebiten.NewImageFromImage(joinImages(generateRandomTatsuImages()...))
+
+	return tatsuImg
+}
+
+// generate random tatsu
+
+type (
+	TatsuType uint8
+)
+
+const (
+	TatsuTypeShuntsu TatsuType = iota + 1
+	TatsuTypeAnko
+	TatsuTypeMinko
+	TatsuTypeAnkan
+	TatsuTypeMinkan
+)
+
+func generateRandomTatsuImages() []image.Image {
 	manzu11, _ := files.ReadFile("images/pai/manzu/vertical/1.png")
 
 	img, _, err := image.Decode(bytes.NewReader(manzu11))
@@ -93,7 +113,35 @@ func generateRandomTatsu() *ebiten.Image {
 		log.Fatal(err)
 	}
 
-	tatsuImg = ebiten.NewImageFromImage(joinImages([]image.Image{img, img2, img}...))
-
-	return tatsuImg
+	return []image.Image{img, img2, img}
 }
+
+type (
+	PaiType  uint8
+	PaiIndex uint8
+	PaiDir   uint8
+)
+
+const (
+	PaiTypeZi PaiType = iota + 1
+	PaiTypeManzu
+	PaiTypeSozu
+	PaiTypePinzu
+)
+
+const (
+	PaiDirHorizon PaiDir = iota + 1
+	PaiDirVertical
+)
+
+const (
+	PaiIndex1 PaiIndex = iota + 1
+	PaiIndex2
+	PaiIndex3
+	PaiIndex4
+	PaiIndex5
+	PaiIndex6
+	PaiIndex7
+	PaiIndex8
+	PaiIndex9
+)
