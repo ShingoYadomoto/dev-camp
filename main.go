@@ -1,19 +1,17 @@
 package main
 
 import (
+	_ "embed"
 	"github.com/ShingoYadomoto/dev-camp/game"
 	"github.com/hajimehoshi/ebiten/v2"
+	_ "image/png"
 	"log"
 )
 
 func main() {
-	g, err := game.NewGame()
-	if err != nil {
-		log.Fatal(err)
-	}
-	ebiten.SetWindowSize(game.ScreenWidth, game.ScreenHeight)
-	ebiten.SetWindowTitle("麻雀")
-	if err := ebiten.RunGame(g); err != nil {
+	ebiten.SetWindowSize(game.ScreenX, game.ScreenY)
+	ebiten.SetWindowTitle("Dinosaur Jump")
+	if err := ebiten.RunGame(game.NewGame()); err != nil {
 		log.Fatal(err)
 	}
 }

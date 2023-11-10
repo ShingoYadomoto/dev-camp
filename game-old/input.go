@@ -1,6 +1,7 @@
-package game
+package game_old
 
 import (
+	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -134,49 +135,57 @@ func (i *Input) Update() {
 		i.mouseState = mouseStateNone
 	}
 
-	i.touches = ebiten.AppendTouchIDs(i.touches[:0])
-	switch i.touchState {
-	case touchStateNone:
-		if len(i.touches) == 1 {
-			i.touchID = i.touches[0]
-			x, y := ebiten.TouchPosition(i.touches[0])
-			i.touchInitPosX = x
-			i.touchInitPosY = y
-			i.touchLastPosX = x
-			i.touchLastPosX = y
-			i.touchState = touchStatePressing
-		}
-	case touchStatePressing:
-		if len(i.touches) >= 2 {
-			break
-		}
-		if len(i.touches) == 1 {
-			if i.touches[0] != i.touchID {
-				i.touchState = touchStateInvalid
-			} else {
-				x, y := ebiten.TouchPosition(i.touches[0])
-				i.touchLastPosX = x
-				i.touchLastPosY = y
-			}
-			break
-		}
-		if len(i.touches) == 0 {
-			dx := i.touchLastPosX - i.touchInitPosX
-			dy := i.touchLastPosY - i.touchInitPosY
-			d, ok := vecToDir(dx, dy)
-			if !ok {
-				i.touchState = touchStateNone
-				break
-			}
-			i.touchDir = d
-			i.touchState = touchStateSettled
-		}
-	case touchStateSettled:
-		i.touchState = touchStateNone
-	case touchStateInvalid:
-		if len(i.touches) == 0 {
-			i.touchState = touchStateNone
-		}
+	//i.touches = ebiten.AppendTouchIDs(i.touches[:0])
+	//if i.touchState != touchStateNone {
+	//	fmt.Printf("touchstate: %#v\n", i.touchState)
+	//	fmt.Printf("input: %#v\n", i)
+	//}
+	//switch i.touchState {
+	//case touchStateNone:
+	//	if len(i.touches) == 1 {
+	//		i.touchID = i.touches[0]
+	//		x, y := ebiten.TouchPosition(i.touches[0])
+	//		i.touchInitPosX = x
+	//		i.touchInitPosY = y
+	//		i.touchLastPosX = x
+	//		i.touchLastPosX = y
+	//		i.touchState = touchStatePressing
+	//	}
+	//case touchStatePressing:
+	//	if len(i.touches) >= 2 {
+	//		break
+	//	}
+	//	if len(i.touches) == 1 {
+	//		if i.touches[0] != i.touchID {
+	//			i.touchState = touchStateInvalid
+	//		} else {
+	//			x, y := ebiten.TouchPosition(i.touches[0])
+	//			i.touchLastPosX = x
+	//			i.touchLastPosY = y
+	//		}
+	//		break
+	//	}
+	//	if len(i.touches) == 0 {
+	//		dx := i.touchLastPosX - i.touchInitPosX
+	//		dy := i.touchLastPosY - i.touchInitPosY
+	//		d, ok := vecToDir(dx, dy)
+	//		if !ok {
+	//			i.touchState = touchStateNone
+	//			break
+	//		}
+	//		i.touchDir = d
+	//		i.touchState = touchStateSettled
+	//	}
+	//case touchStateSettled:
+	//	i.touchState = touchStateNone
+	//case touchStateInvalid:
+	//	if len(i.touches) == 0 {
+	//		i.touchState = touchStateNone
+	//	}
+	//}
+
+	if i.touchState != touchStateNone {
+		fmt.Printf("input: %#v\n", i)
 	}
 }
 

@@ -1,4 +1,4 @@
-package game
+package game_old
 
 import (
 	"errors"
@@ -18,16 +18,15 @@ type Board struct {
 }
 
 // NewBoard generates a new Board with giving a size.
-func NewBoard(size int) (*Board, error) {
+func NewBoard() (*Board, error) {
 	b := &Board{
-		size:  size,
 		tiles: map[*Tile]struct{}{},
 	}
-	for i := 0; i < 2; i++ {
-		if err := addRandomTile(b.tiles, b.size); err != nil {
-			return nil, err
-		}
-	}
+	//for i := 0; i < 2; i++ {
+	//	if err := addRandomTile(b.tiles, b.size); err != nil {
+	//		return nil, err
+	//	}
+	//}
 	return b, nil
 }
 
@@ -100,9 +99,7 @@ func (b *Board) Move(dir Dir) error {
 
 // Size returns the board size.
 func (b *Board) Size() (int, int) {
-	x := b.size*tileSize + (b.size+1)*tileMargin
-	y := x
-	return x, y
+	return boardWidth, boardHeight
 }
 
 // Draw draws the board to the given boardImage.
