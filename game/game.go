@@ -40,7 +40,7 @@ type Game struct {
 	hiscore int
 
 	tatsus           [maxTatsuCount]*tatsu
-	targetTatsuIndex int
+	showTatsuIndexes []int
 	lastPaiX         int
 	ground           *ground
 }
@@ -57,6 +57,7 @@ func (g *Game) init() {
 	g.hiscore = g.score
 	g.count = 0
 	g.score = 0
+	g.showTatsuIndexes = nil
 	g.lastPaiX = 0
 	for i := 0; i < maxTatsuCount; i++ {
 		image, correctFu, dummyFu := generateRandomTatsu()
@@ -65,6 +66,7 @@ func (g *Game) init() {
 			correctFu: correctFu,
 			dummyFu:   dummyFu,
 		}
+		g.tatsus[i].dummyFu = correctFu // ToDo: for debug
 	}
 	g.ground = &ground{y: groundY - 10}
 }
@@ -80,7 +82,7 @@ func (g *Game) Update() error {
 		g.count++
 		g.score = g.count / 5
 
-		for _, t := range g.tatsus {
+		for i, t := range g.tatsus {
 			if t.visible {
 				t.move(speed)
 				if t.isOutOfScreen() {
@@ -90,6 +92,7 @@ func (g *Game) Update() error {
 				if g.count-g.lastPaiX > minTatsuDist && g.count%interval == 0 && rand.Intn(10) == 0 {
 					g.lastPaiX = g.count
 					t.show()
+					g.showTatsuIndexes = append(g.showTatsuIndexes, i)
 					break
 				}
 			}
@@ -97,13 +100,19 @@ func (g *Game) Update() error {
 
 		g.ground.move(speed)
 
-		if g.isSpacePressed() && !g.tatsus[g.targetTatsuIndex].answer(true) {
-			g.mode = modeGameover
-			g.targetTatsuIndex++
+		if g.isSpacePressed() {
+			fmt.Println("Answer YES")
+			if len(g.showTatsuIndexes) == 0 || !g.tatsus[g.showTatsuIndexes[0]].answer(true) {
+				g.mode = modeGameover
+			}
+			g.showTatsuIndexes = g.showTatsuIndexes[1:]
 		}
-		if g.isEnterPressed() && !g.tatsus[g.targetTatsuIndex].answer(false) {
-			g.mode = modeGameover
-			g.targetTatsuIndex++
+		if g.isEnterPressed() {
+			fmt.Println("Answer NO")
+			if len(g.showTatsuIndexes) == 0 || !g.tatsus[g.showTatsuIndexes[0]].answer(false) {
+				g.mode = modeGameover
+			}
+			g.showTatsuIndexes = g.showTatsuIndexes[1:]
 		}
 	case modeGameover:
 		if g.isSpacePressed() {
@@ -166,18 +175,18 @@ func (g *Game) drawTatsus(screen *ebiten.Image) {
 			op.Filter = ebiten.FilterLinear
 			screen.DrawImage(t.i, op)
 
-			tt, err := opentype.Parse(fonts.PressStart2P_ttf)
+			tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
 			if err != nil {
 				log.Fatal(err)
 			}
 			const dpi = 72
 			arcadeFont, err := opentype.NewFace(tt, &opentype.FaceOptions{
-				Size:    fontSize + 10,
+				Size:    fontSize + 14,
 				DPI:     dpi,
 				Hinting: font.HintingFull,
 			})
 
-			text.Draw(screen, fmt.Sprint(t.dummyFu), arcadeFont, t.x+(t.i.Bounds().Dx()/2)-10, t.y-30, color.Black)
+			text.Draw(screen, fmt.Sprintf("%d符", t.dummyFu), arcadeFont, t.x+(t.i.Bounds().Dx()/2)-20, t.y-30, color.White)
 		}
 	}
 }
