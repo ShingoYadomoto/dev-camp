@@ -18,10 +18,6 @@ const (
 	gravity      = 1
 	fontSize     = 10
 
-	// tree kinds
-	kindTreeSmall = 0
-	kindTreeBig   = 1
-
 	// game modes
 	modeTitle    = 0
 	modeGame     = 1
@@ -40,8 +36,8 @@ type Game struct {
 	dinosaurX int
 	dinosaurY int
 	gy        int
-	dishes    [maxDishCount]*dish
-	lastTreeX int
+	tatsus    [maxTatsuCount]*tatsu
+	lastPaiX  int
 	ground    *ground
 }
 
@@ -57,10 +53,10 @@ func (g *Game) init() {
 	g.hiscore = g.score
 	g.count = 0
 	g.score = 0
-	g.lastTreeX = 0
+	g.lastPaiX = 0
 	g.gy = 0
-	for i := 0; i < maxDishCount; i++ {
-		g.dishes[i] = &dish{}
+	for i := 0; i < maxTatsuCount; i++ {
+		g.tatsus[i] = &tatsu{}
 	}
 	g.ground = &ground{y: groundY - 30}
 }
@@ -76,15 +72,15 @@ func (g *Game) Update() error {
 		g.count++
 		g.score = g.count / 5
 
-		for _, t := range g.dishes {
+		for _, t := range g.tatsus {
 			if t.visible {
 				t.move(speed)
 				if t.isOutOfScreen() {
 					t.hide()
 				}
 			} else {
-				if g.count-g.lastTreeX > minDishDist && g.count%interval == 0 && rand.Intn(10) == 0 {
-					g.lastTreeX = g.count
+				if g.count-g.lastPaiX > minTatsuDist && g.count%interval == 0 && rand.Intn(10) == 0 {
+					g.lastPaiX = g.count
 					t.show()
 					break
 				}
@@ -110,8 +106,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	var xs [3]int
 	var ys [3]int
 
-	if len(g.dishes) > 0 {
-		for i, t := range g.dishes {
+	if len(g.tatsus) > 0 {
+		for i, t := range g.tatsus {
 			xs[i] = t.x
 			ys[i] = t.y
 		}
@@ -142,7 +138,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) drawDishes(screen *ebiten.Image) {
-	for _, t := range g.dishes {
+	for _, t := range g.tatsus {
 		if t.visible {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(t.x), float64(t.y))
@@ -176,7 +172,7 @@ func (g *Game) isKeyJustPressed() bool {
 }
 
 func (g *Game) hit() bool {
-	for _, t := range g.dishes {
+	for _, t := range g.tatsus {
 		if t.visible {
 			return false
 		}

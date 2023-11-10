@@ -3,7 +3,6 @@ package game
 var (
 	groundY = 400
 
-	//groundHeight = 50
 	groundWidth = 50
 )
 
