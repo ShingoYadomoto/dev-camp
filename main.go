@@ -10,7 +10,7 @@ import (
 
 func main() {
 	ebiten.SetWindowSize(game.ScreenX, game.ScreenY)
-	ebiten.SetWindowTitle("Dinosaur Jump")
+	ebiten.SetWindowTitle("麻雀")
 	if err := ebiten.RunGame(game.NewGame()); err != nil {
 		log.Fatal(err)
 	}

@@ -1,21 +1,14 @@
 package game
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
-	"image"
 	"image/color"
-	"log"
 	"math/rand"
-	"time"
 )
 
 const (
@@ -34,48 +27,9 @@ const (
 	modeGame     = 1
 	modeGameover = 2
 
-	speed    = 6
+	speed    = 3
 	interval = 10
 )
-
-var (
-	dishImg    *ebiten.Image
-	groundImg  *ebiten.Image
-	arcadeFont font.Face
-)
-
-//go:embed images/dish.png
-var byteDishImg []byte
-
-//go:embed images/ground.png
-var byteGroundImg []byte
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-
-	img, _, err := image.Decode(bytes.NewReader(byteDishImg))
-	if err != nil {
-		log.Fatal(err)
-	}
-	dishImg = ebiten.NewImageFromImage(img)
-
-	img, _, err = image.Decode(bytes.NewReader(byteGroundImg))
-	if err != nil {
-		log.Fatal(err)
-	}
-	groundImg = ebiten.NewImageFromImage(img)
-
-	tt, err := opentype.Parse(fonts.PressStart2P_ttf)
-	if err != nil {
-		log.Fatal(err)
-	}
-	const dpi = 72
-	arcadeFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
-		Size:    fontSize,
-		DPI:     dpi,
-		Hinting: font.HintingFull,
-	})
-}
 
 // Game struct
 type Game struct {

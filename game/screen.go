@@ -1,6 +1,6 @@
 package game
 
 var (
-	ScreenX = 640
-	ScreenY = 480
+	ScreenX = 1000
+	ScreenY = 640
 )
