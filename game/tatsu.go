@@ -7,15 +7,17 @@ const (
 	tatsuHeghit = 99
 
 	minTatsuDist  = 50
-	maxTatsuCount = 3
+	maxTatsuCount = 50
 )
 
 type tatsu struct {
 	i *ebiten.Image
 
-	x         int
-	y         int
-	visible   bool
+	x       int
+	y       int
+	visible bool
+
+	dummyFu   uint8
 	correctFu uint8
 }
 

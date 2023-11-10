@@ -12,6 +12,7 @@ import (
 	"image"
 	"image/draw"
 	"log"
+	"math"
 	"math/rand"
 	"path"
 	"time"
@@ -80,10 +81,10 @@ func init() {
 	})
 }
 
-func generateRandomTatsu() (*ebiten.Image, uint8) {
-	img, fu := generateRandomTatsuImage()
+func generateRandomTatsu() (image *ebiten.Image, correctFu, dummyFu uint8) {
+	img, cfu, dfu := generateRandomTatsuImage()
 
-	return ebiten.NewImageFromImage(img), fu
+	return ebiten.NewImageFromImage(img), cfu, dfu
 }
 
 // generate random tatsu
@@ -195,7 +196,7 @@ func RandomPaiIndex() PaiIndex {
 	return indexes[rand.Intn(len(indexes))]
 }
 
-func generateRandomTatsuImage() (image.Image, uint8) {
+func generateRandomTatsuImage() (img image.Image, correctFu, dummyFu uint8) {
 	var (
 		pl = make([]Pai, 0, 4)
 		fu uint8
@@ -301,7 +302,7 @@ func generateRandomTatsuImage() (image.Image, uint8) {
 			for i := 0; i < 2; i++ {
 				pl = append(pl, Pai{
 					Type:  paiType,
-					Index: index + PaiIndex(i),
+					Index: index,
 					Dir:   PaiDirVertical,
 				})
 			}
@@ -319,18 +320,19 @@ func generateRandomTatsuImage() (image.Image, uint8) {
 			}
 
 			removeIndex := rand.Intn(len(indexes))
-			pl = append(pl[0:removeIndex], pl[removeIndex:]...)
 
 			switch removeIndex {
 			case 0:
-				if pl[removeIndex].Index != PaiIndex1 {
+				if pl[2].Index != PaiIndex9 {
 					isRyanmen = true
 				}
 			case 2:
-				if pl[removeIndex].Index != PaiIndex9 {
+				if pl[0].Index != PaiIndex1 {
 					isRyanmen = true
 				}
 			}
+
+			pl = append(pl[:removeIndex], pl[removeIndex+1:]...)
 
 			return
 		}
@@ -385,5 +387,14 @@ func generateRandomTatsuImage() (image.Image, uint8) {
 		images[i] = p.Image()
 	}
 
-	return joinImages(images...), fu
+	dummyFu = func() uint8 {
+		rand.Seed(time.Now().UnixNano())
+		d := math.Pow(2, float64(rand.Intn(6)))
+		if d == 1 {
+			return 0
+		}
+		return uint8(d)
+	}()
+
+	return joinImages(images...), fu, dummyFu
 }

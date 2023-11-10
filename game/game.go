@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 	"image/color"
+	"log"
 	"math/rand"
 )
 
@@ -54,10 +58,11 @@ func (g *Game) init() {
 	g.score = 0
 	g.lastPaiX = 0
 	for i := 0; i < maxTatsuCount; i++ {
-		image, fu := generateRandomTatsu()
+		image, correctFu, dummyFu := generateRandomTatsu()
 		g.tatsus[i] = &tatsu{
 			i:         image,
-			correctFu: fu,
+			correctFu: correctFu,
+			dummyFu:   dummyFu,
 		}
 	}
 	g.ground = &ground{y: groundY - 10}
@@ -105,8 +110,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(backgroundColor)
 	text.Draw(screen, fmt.Sprintf("Hisore: %d", g.hiscore), arcadeFont, 300, 20, color.Black)
 	text.Draw(screen, fmt.Sprintf("Score: %d", g.score), arcadeFont, 500, 20, color.Black)
-	var xs [3]int
-	var ys [3]int
+	var xs [maxTatsuCount]int
+	var ys [maxTatsuCount]int
 
 	if len(g.tatsus) > 0 {
 		for i, t := range g.tatsus {
@@ -150,6 +155,19 @@ func (g *Game) drawTatsus(screen *ebiten.Image) {
 			op.GeoM.Translate(float64(t.x), float64(t.y))
 			op.Filter = ebiten.FilterLinear
 			screen.DrawImage(t.i, op)
+
+			tt, err := opentype.Parse(fonts.PressStart2P_ttf)
+			if err != nil {
+				log.Fatal(err)
+			}
+			const dpi = 72
+			arcadeFont, err := opentype.NewFace(tt, &opentype.FaceOptions{
+				Size:    fontSize + 10,
+				DPI:     dpi,
+				Hinting: font.HintingFull,
+			})
+
+			text.Draw(screen, fmt.Sprint(t.dummyFu), arcadeFont, t.x+(t.i.Bounds().Dx()/2)-10, t.y-30, color.Black)
 		}
 	}
 }
