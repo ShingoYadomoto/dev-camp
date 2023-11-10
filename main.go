@@ -1,11 +1,10 @@
 package main
 
 import (
-	twenty48 "github.com/hajimehoshi/ebiten/examples/2048/2048"
+	"github.com/ShingoYadomoto/dev-camp/game"
+	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
 	"log"
-
-	"github.com/hajimehoshi/ebiten"
 )
 
 const (
@@ -49,11 +48,11 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	game, err := twenty48.NewGame()
+	game, err := game.NewGame()
 	if err != nil {
 		log.Fatal(err)
 	}
-	ebiten.SetWindowSize(twenty48.ScreenWidth, twenty48.ScreenHeight)
+	ebiten.SetWindowSize(game.ScreenWidth, game.ScreenHeight)
 	ebiten.SetWindowTitle("2048 (Ebitengine Demo)")
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
