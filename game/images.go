@@ -21,24 +21,13 @@ var (
 	arcadeFont font.Face
 )
 
-//go:embed images/ground.png
+//go:embed images/tenbou.png
 var byteGroundImg []byte
 
 //go:embed images/pai/*
 var files embed.FS
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-
-	//manzu11, _ := files.ReadFile("images/pai/manzu/horizontal/1.png")
-	manzu11, _ := files.ReadFile("images/pai/manzu/vertical/1.png")
-
-	img, _, err := image.Decode(bytes.NewReader(manzu11))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	srcImages := []image.Image{img, img, img}
+func joinImages(srcImages ...image.Image) image.Image {
 	width, height := 0, 0
 	for _, img := range srcImages {
 		rct := img.Bounds()
@@ -46,6 +35,7 @@ func init() {
 		height = rct.Dy()
 		srcImages = append(srcImages, img)
 	}
+
 	dstImage := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	offset := 0
@@ -61,7 +51,21 @@ func init() {
 		offset += srcRect.Dx()
 	}
 
-	dishImg = ebiten.NewImageFromImage(dstImage)
+	return dstImage
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+
+	//manzu11, _ := files.ReadFile("images/pai/manzu/horizontal/1.png")
+	manzu11, _ := files.ReadFile("images/pai/manzu/vertical/1.png")
+
+	img, _, err := image.Decode(bytes.NewReader(manzu11))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dishImg = ebiten.NewImageFromImage(joinImages([]image.Image{img, img, img}...))
 
 	img, _, err = image.Decode(bytes.NewReader(byteGroundImg))
 	if err != nil {

@@ -24,21 +24,20 @@ const (
 	modeGameover = 2
 
 	speed    = 3
-	interval = 10
+	interval = 15
 )
 
 // Game struct
 type Game struct {
-	mode      int
-	count     int
-	score     int
-	hiscore   int
-	dinosaurX int
-	dinosaurY int
-	gy        int
-	tatsus    [maxTatsuCount]*tatsu
-	lastPaiX  int
-	ground    *ground
+	mode  int
+	count int
+
+	score   int
+	hiscore int
+
+	tatsus   [maxTatsuCount]*tatsu
+	lastPaiX int
+	ground   *ground
 }
 
 // NewGame method
@@ -54,7 +53,6 @@ func (g *Game) init() {
 	g.count = 0
 	g.score = 0
 	g.lastPaiX = 0
-	g.gy = 0
 	for i := 0; i < maxTatsuCount; i++ {
 		g.tatsus[i] = &tatsu{}
 	}
@@ -115,8 +113,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	if debug {
 		ebitenutil.DebugPrint(screen, fmt.Sprintf(
-			"g.y: %d\nTree1 x:%d, y:%d\nTree2 x:%d, y:%d\nTree3 x:%d, y:%d",
-			g.dinosaurY,
+			"Tree1 x:%d, y:%d\nTree2 x:%d, y:%d\nTree3 x:%d, y:%d",
 			xs[0],
 			ys[0],
 			xs[1],
@@ -127,17 +124,22 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	g.drawGround(screen)
-	g.drawDishes(screen)
+	g.drawTatsus(screen)
+
+	var (
+		titleX = 425
+		titleY = 300
+	)
 
 	switch g.mode {
 	case modeTitle:
-		text.Draw(screen, "PRESS SPACE KEY", arcadeFont, 245, 240, color.Black)
+		text.Draw(screen, "PRESS SPACE KEY", arcadeFont, titleX, titleY, color.Black)
 	case modeGameover:
-		text.Draw(screen, "GAME OVER", arcadeFont, 275, 240, color.Black)
+		text.Draw(screen, "GAME OVER", arcadeFont, titleX, titleY, color.Black)
 	}
 }
 
-func (g *Game) drawDishes(screen *ebiten.Image) {
+func (g *Game) drawTatsus(screen *ebiten.Image) {
 	for _, t := range g.tatsus {
 		if t.visible {
 			op := &ebiten.DrawImageOptions{}

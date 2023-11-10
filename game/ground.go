@@ -1,9 +1,9 @@
 package game
 
 var (
-	groundY = 400
+	groundY = ScreenY - ScreenY/8
 
-	groundWidth = 50
+	groundWidth = 100
 )
 
 type ground struct {
