@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	dishImg    *ebiten.Image
+	tatsuImg   *ebiten.Image
 	groundImg  *ebiten.Image
 	arcadeFont font.Face
 )
@@ -57,17 +57,7 @@ func joinImages(srcImages ...image.Image) image.Image {
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
-	//manzu11, _ := files.ReadFile("images/pai/manzu/horizontal/1.png")
-	manzu11, _ := files.ReadFile("images/pai/manzu/vertical/1.png")
-
-	img, _, err := image.Decode(bytes.NewReader(manzu11))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	dishImg = ebiten.NewImageFromImage(joinImages([]image.Image{img, img, img}...))
-
-	img, _, err = image.Decode(bytes.NewReader(byteGroundImg))
+	img, _, err := image.Decode(bytes.NewReader(byteGroundImg))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,4 +73,24 @@ func init() {
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
+}
+
+func generateRandomTatsu() *ebiten.Image {
+	manzu11, _ := files.ReadFile("images/pai/manzu/vertical/1.png")
+
+	img, _, err := image.Decode(bytes.NewReader(manzu11))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	manzu11H, _ := files.ReadFile("images/pai/manzu/horizontal/1.png")
+
+	img2, _, err := image.Decode(bytes.NewReader(manzu11H))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tatsuImg = ebiten.NewImageFromImage(joinImages([]image.Image{img, img2, img}...))
+
+	return tatsuImg
 }

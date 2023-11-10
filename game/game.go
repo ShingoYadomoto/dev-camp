@@ -145,7 +145,7 @@ func (g *Game) drawTatsus(screen *ebiten.Image) {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(t.x), float64(t.y))
 			op.Filter = ebiten.FilterLinear
-			screen.DrawImage(dishImg, op)
+			screen.DrawImage(generateRandomTatsu(), op)
 		}
 	}
 }
