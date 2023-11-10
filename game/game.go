@@ -39,9 +39,10 @@ type Game struct {
 	score   int
 	hiscore int
 
-	tatsus   [maxTatsuCount]*tatsu
-	lastPaiX int
-	ground   *ground
+	tatsus           [maxTatsuCount]*tatsu
+	targetTatsuIndex int
+	lastPaiX         int
+	ground           *ground
 }
 
 // NewGame method
@@ -72,7 +73,7 @@ func (g *Game) init() {
 func (g *Game) Update() error {
 	switch g.mode {
 	case modeTitle:
-		if g.isKeyJustPressed() {
+		if g.isSpacePressed() {
 			g.mode = modeGame
 		}
 	case modeGame:
@@ -83,7 +84,7 @@ func (g *Game) Update() error {
 			if t.visible {
 				t.move(speed)
 				if t.isOutOfScreen() {
-					t.hide()
+					g.mode = modeGameover
 				}
 			} else {
 				if g.count-g.lastPaiX > minTatsuDist && g.count%interval == 0 && rand.Intn(10) == 0 {
@@ -95,8 +96,17 @@ func (g *Game) Update() error {
 		}
 
 		g.ground.move(speed)
+
+		if g.isSpacePressed() && !g.tatsus[g.targetTatsuIndex].answer(true) {
+			g.mode = modeGameover
+			g.targetTatsuIndex++
+		}
+		if g.isEnterPressed() && !g.tatsus[g.targetTatsuIndex].answer(false) {
+			g.mode = modeGameover
+			g.targetTatsuIndex++
+		}
 	case modeGameover:
-		if g.isKeyJustPressed() {
+		if g.isSpacePressed() {
 			g.init()
 			g.mode = modeGame
 		}
@@ -188,8 +198,15 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return ScreenX, ScreenY
 }
 
-func (g *Game) isKeyJustPressed() bool {
+func (g *Game) isSpacePressed() bool {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		return true
+	}
+	return false
+}
+
+func (g *Game) isEnterPressed() bool {
+	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		return true
 	}
 	return false

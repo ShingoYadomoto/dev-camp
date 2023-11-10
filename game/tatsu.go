@@ -38,3 +38,8 @@ func (t *tatsu) hide() {
 func (t *tatsu) isOutOfScreen() bool {
 	return t.x < -50
 }
+
+func (t *tatsu) answer(answer bool) bool {
+	t.hide()
+	return answer == (t.correctFu == t.dummyFu)
+}
