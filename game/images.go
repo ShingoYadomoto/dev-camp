@@ -32,8 +32,9 @@ func joinImages(srcImages ...image.Image) image.Image {
 	for _, img := range srcImages {
 		rct := img.Bounds()
 		width += rct.Dx()
-		height = rct.Dy()
-		srcImages = append(srcImages, img)
+		if rct.Dy() > height {
+			height = rct.Dy()
+		}
 	}
 
 	dstImage := image.NewRGBA(image.Rect(0, 0, width, height))
@@ -41,9 +42,11 @@ func joinImages(srcImages ...image.Image) image.Image {
 	offset := 0
 	for _, img := range srcImages {
 		srcRect := img.Bounds()
+		rect := image.Rect(offset, height-srcRect.Dy(), offset+srcRect.Dx(), height)
+
 		draw.Draw(
 			dstImage,
-			image.Rect(offset, 0, offset+srcRect.Dx(), srcRect.Dy()),
+			rect,
 			img,
 			image.Point{0, 0},
 			draw.Over,

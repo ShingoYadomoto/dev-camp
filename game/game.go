@@ -23,7 +23,7 @@ const (
 	modeGame     = 1
 	modeGameover = 2
 
-	speed    = 3
+	speed    = 6
 	interval = 15
 )
 
@@ -56,7 +56,7 @@ func (g *Game) init() {
 	for i := 0; i < maxTatsuCount; i++ {
 		g.tatsus[i] = &tatsu{}
 	}
-	g.ground = &ground{y: groundY - 30}
+	g.ground = &ground{y: groundY - 10}
 }
 
 // Update method

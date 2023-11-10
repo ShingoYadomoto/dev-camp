@@ -1,7 +1,7 @@
 package game
 
 var (
-	groundY = ScreenY - ScreenY/8
+	groundY = ScreenY - ScreenY/10
 
 	groundWidth = 100
 )
