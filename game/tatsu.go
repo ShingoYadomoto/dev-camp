@@ -32,12 +32,12 @@ func (t *tatsu) show() {
 	t.visible = true
 }
 
-func (t *tatsu) revertImage() {
-	t.i = t.next
-}
-
 func (t *tatsu) hide() {
 	t.visible = false
+	if t.next != nil {
+		t.i = t.next
+		t.next = nil
+	}
 }
 
 func (t *tatsu) showIncorrect() {
@@ -48,6 +48,10 @@ func (t *tatsu) showIncorrect() {
 func (t *tatsu) showCorrect() {
 	t.next = t.i
 	t.i = correctImg
+}
+
+func (t *tatsu) answered() bool {
+	return t.next != nil
 }
 
 func (t *tatsu) isOutOfScreen() bool {
@@ -63,4 +67,12 @@ func (t *tatsu) answer(answer bool) bool {
 	}
 
 	return correct
+}
+
+func (t *tatsu) point() int {
+	if t.correctFu == 0 {
+		return 1
+	}
+
+	return int(t.correctFu)
 }

@@ -12,6 +12,7 @@ import (
 	"golang.org/x/image/font/opentype"
 	"image/color"
 	"log"
+	"math"
 	"math/rand"
 )
 
@@ -27,8 +28,8 @@ const (
 	modeGame     = 1
 	modeGameover = 2
 
-	speed    = 6
-	interval = 20
+	speed    = 3
+	interval = 100
 )
 
 // Game struct
@@ -38,6 +39,7 @@ type Game struct {
 
 	score int
 
+	pause bool
 	speed int
 
 	tatsus           [maxTatsuCount]*tatsu
@@ -80,16 +82,14 @@ func (g *Game) Update() error {
 		}
 	case modeGame:
 		if g.isSPressed() {
-			if g.speed == 0 {
-				g.speed = speed
-			} else {
-				g.speed = 0
-			}
+			g.pause = !g.pause
 		}
 
-		if g.speed == 0 {
+		if g.pause {
 			return nil
 		}
+
+		g.speed = int(math.Max(float64(g.speed), float64(g.score/5)+3))
 
 		g.count++
 
@@ -97,11 +97,10 @@ func (g *Game) Update() error {
 			if t.visible {
 				t.move(g.speed)
 				if t.isOutOfScreen() {
-					t.hide()
-					t.revertImage()
-					if len(g.showTatsuIndexes) > 0 {
+					if !t.answered() {
 						g.showTatsuIndexes = g.showTatsuIndexes[1:]
 					}
+					t.hide()
 				}
 			} else {
 				if g.count-g.lastPaiX > minTatsuDist && g.count%interval == 0 && rand.Intn(interval/2) == 0 {
@@ -119,11 +118,12 @@ func (g *Game) Update() error {
 			if len(g.showTatsuIndexes) == 0 {
 				g.mode = modeGameover
 			} else {
-				pt := g.tatsus[g.showTatsuIndexes[0]]
+				deleteIdx := g.showTatsuIndexes[0]
+				pt := g.tatsus[deleteIdx]
 				if pt.answer(true) {
-					g.score += int(pt.correctFu)
+					g.score += pt.point()
 				} else {
-					g.score -= int(pt.correctFu)
+					g.score -= pt.point()
 				}
 
 				g.showTatsuIndexes = g.showTatsuIndexes[1:]
@@ -133,11 +133,12 @@ func (g *Game) Update() error {
 			if len(g.showTatsuIndexes) == 0 {
 				g.mode = modeGameover
 			} else {
-				pt := g.tatsus[g.showTatsuIndexes[0]]
+				deleteIdx := g.showTatsuIndexes[0]
+				pt := g.tatsus[deleteIdx]
 				if pt.answer(false) {
-					g.score += int(pt.correctFu)
+					g.score += pt.point()
 				} else {
-					g.score -= int(pt.correctFu)
+					g.score -= pt.point()
 				}
 
 				g.showTatsuIndexes = g.showTatsuIndexes[1:]
@@ -161,6 +162,7 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(backgroundColor)
 	text.Draw(screen, fmt.Sprintf("Score: %d", g.score), arcadeFont, 20, 30, color.White)
+	text.Draw(screen, fmt.Sprintf("Level: %d", g.level()), arcadeFont, 240, 30, color.White)
 	var xs [maxTatsuCount]int
 	var ys [maxTatsuCount]int
 
@@ -197,6 +199,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case modeGameover:
 		text.Draw(screen, "GAME OVER", arcadeFont, titleX, titleY, color.White)
 	}
+
+	if g.pause {
+		text.Draw(screen, "RESTART with s", arcadeFont, titleX, titleY, color.White)
+	}
 }
 
 func (g *Game) drawTatsus(screen *ebiten.Image) {
@@ -218,7 +224,7 @@ func (g *Game) drawTatsus(screen *ebiten.Image) {
 				Hinting: font.HintingFull,
 			})
 
-			text.Draw(screen, fmt.Sprintf("%d符", t.dummyFu), arcadeFont, t.x+(t.i.Bounds().Dx()/2)-20, t.y-30, color.White)
+			text.Draw(screen, fmt.Sprintf("%d符", t.dummyFu), arcadeFont, t.x+(t.i.Bounds().Dx()/2)-30, t.y-30, color.White)
 		}
 	}
 }
@@ -267,11 +273,6 @@ func (g *Game) isKeyEscapePressed() bool {
 	return false
 }
 
-func (g *Game) hit() bool {
-	for _, t := range g.tatsus {
-		if t.visible {
-			return false
-		}
-	}
-	return false
+func (g *Game) level() int {
+	return g.speed - 2
 }
