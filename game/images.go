@@ -19,13 +19,24 @@ import (
 )
 
 var (
-	tatsuImg   *ebiten.Image
-	groundImg  *ebiten.Image
+	tatsuImg *ebiten.Image
+
+	correctImg   *ebiten.Image
+	incorrectImg *ebiten.Image
+
+	groundImg *ebiten.Image
+
 	arcadeFont font.Face
 )
 
 //go:embed images/tenbou.png
 var byteGroundImg []byte
+
+//go:embed images/correct.png
+var byteCorrectImg []byte
+
+//go:embed images/explosion.png
+var byteIncorrectImg []byte
 
 //go:embed images/pai/*
 var files embed.FS
@@ -68,6 +79,18 @@ func init() {
 		log.Fatal(err)
 	}
 	groundImg = ebiten.NewImageFromImage(img)
+
+	img, _, err = image.Decode(bytes.NewReader(byteCorrectImg))
+	if err != nil {
+		log.Fatal(err)
+	}
+	correctImg = ebiten.NewImageFromImage(img)
+
+	img, _, err = image.Decode(bytes.NewReader(byteIncorrectImg))
+	if err != nil {
+		log.Fatal(err)
+	}
+	incorrectImg = ebiten.NewImageFromImage(img)
 
 	tt, err := opentype.Parse(fonts.PressStart2P_ttf)
 	if err != nil {

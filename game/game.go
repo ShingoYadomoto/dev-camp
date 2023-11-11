@@ -20,7 +20,7 @@ const (
 	baseX        = 100
 	jumpingPower = 15
 	gravity      = 1
-	fontSize     = 10
+	fontSize     = 20
 
 	// game modes
 	modeTitle    = 0
@@ -36,8 +36,7 @@ type Game struct {
 	mode  int
 	count int
 
-	score   int
-	hiscore int
+	score int
 
 	tatsus           [maxTatsuCount]*tatsu
 	showTatsuIndexes []int
@@ -54,7 +53,6 @@ func NewGame() *Game {
 
 // Init method
 func (g *Game) init() {
-	g.hiscore = g.score
 	g.count = 0
 	g.score = 0
 	g.showTatsuIndexes = nil
@@ -66,7 +64,6 @@ func (g *Game) init() {
 			correctFu: correctFu,
 			dummyFu:   dummyFu,
 		}
-		g.tatsus[i].dummyFu = correctFu // ToDo: for debug
 	}
 	g.ground = &ground{y: groundY - 10}
 }
@@ -80,13 +77,13 @@ func (g *Game) Update() error {
 		}
 	case modeGame:
 		g.count++
-		g.score = g.count / 5
 
 		for i, t := range g.tatsus {
 			if t.visible {
 				t.move(speed)
 				if t.isOutOfScreen() {
-					g.mode = modeGameover
+					t.hide()
+					t.revertImage()
 				}
 			} else {
 				if g.count-g.lastPaiX > minTatsuDist && g.count%interval == 0 && rand.Intn(10) == 0 {
@@ -101,18 +98,36 @@ func (g *Game) Update() error {
 		g.ground.move(speed)
 
 		if g.isSpacePressed() {
-			fmt.Println("Answer YES")
-			if len(g.showTatsuIndexes) == 0 || !g.tatsus[g.showTatsuIndexes[0]].answer(true) {
+			if len(g.showTatsuIndexes) == 0 {
 				g.mode = modeGameover
+			} else {
+				pt := g.tatsus[g.showTatsuIndexes[0]]
+				if pt.answer(true) {
+					g.score += int(pt.correctFu)
+				} else {
+					g.score -= int(pt.correctFu)
+				}
+
+				g.showTatsuIndexes = g.showTatsuIndexes[1:]
 			}
-			g.showTatsuIndexes = g.showTatsuIndexes[1:]
 		}
 		if g.isEnterPressed() {
-			fmt.Println("Answer NO")
-			if len(g.showTatsuIndexes) == 0 || !g.tatsus[g.showTatsuIndexes[0]].answer(false) {
+			if len(g.showTatsuIndexes) == 0 {
 				g.mode = modeGameover
+			} else {
+				pt := g.tatsus[g.showTatsuIndexes[0]]
+				if pt.answer(false) {
+					g.score += int(pt.correctFu)
+				} else {
+					g.score -= int(pt.correctFu)
+				}
+
+				g.showTatsuIndexes = g.showTatsuIndexes[1:]
 			}
-			g.showTatsuIndexes = g.showTatsuIndexes[1:]
+		}
+		if g.isKeyEscapePressed() {
+			g.init()
+			g.mode = modeTitle
 		}
 	case modeGameover:
 		if g.isSpacePressed() {
@@ -127,8 +142,7 @@ func (g *Game) Update() error {
 // Draw method
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(backgroundColor)
-	text.Draw(screen, fmt.Sprintf("Hisore: %d", g.hiscore), arcadeFont, 300, 20, color.Black)
-	text.Draw(screen, fmt.Sprintf("Score: %d", g.score), arcadeFont, 500, 20, color.Black)
+	text.Draw(screen, fmt.Sprintf("Score: %d", g.score), arcadeFont, 20, 30, color.White)
 	var xs [maxTatsuCount]int
 	var ys [maxTatsuCount]int
 
@@ -155,15 +169,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawTatsus(screen)
 
 	var (
-		titleX = 425
-		titleY = 300
+		titleX = 380
+		titleY = 330
 	)
 
 	switch g.mode {
 	case modeTitle:
-		text.Draw(screen, "PRESS SPACE KEY", arcadeFont, titleX, titleY, color.Black)
+		text.Draw(screen, "PRESS SPACE", arcadeFont, titleX, titleY, color.White)
 	case modeGameover:
-		text.Draw(screen, "GAME OVER", arcadeFont, titleX, titleY, color.Black)
+		text.Draw(screen, "GAME OVER", arcadeFont, titleX, titleY, color.White)
 	}
 }
 
@@ -216,6 +230,13 @@ func (g *Game) isSpacePressed() bool {
 
 func (g *Game) isEnterPressed() bool {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+		return true
+	}
+	return false
+}
+
+func (g *Game) isKeyEscapePressed() bool {
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return true
 	}
 	return false

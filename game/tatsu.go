@@ -11,7 +11,8 @@ const (
 )
 
 type tatsu struct {
-	i *ebiten.Image
+	i    *ebiten.Image
+	next *ebiten.Image
 
 	x       int
 	y       int
@@ -31,8 +32,22 @@ func (t *tatsu) show() {
 	t.visible = true
 }
 
+func (t *tatsu) revertImage() {
+	t.i = t.next
+}
+
 func (t *tatsu) hide() {
 	t.visible = false
+}
+
+func (t *tatsu) showIncorrect() {
+	t.next = t.i
+	t.i = incorrectImg
+}
+
+func (t *tatsu) showCorrect() {
+	t.next = t.i
+	t.i = correctImg
 }
 
 func (t *tatsu) isOutOfScreen() bool {
@@ -40,6 +55,12 @@ func (t *tatsu) isOutOfScreen() bool {
 }
 
 func (t *tatsu) answer(answer bool) bool {
-	t.hide()
-	return answer == (t.correctFu == t.dummyFu)
+	correct := answer == (t.correctFu == t.dummyFu)
+	if correct {
+		t.showCorrect()
+	} else {
+		t.showIncorrect()
+	}
+
+	return correct
 }
