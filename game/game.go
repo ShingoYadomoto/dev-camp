@@ -28,7 +28,7 @@ const (
 	modeGameover = 2
 
 	speed    = 6
-	interval = 15
+	interval = 20
 )
 
 // Game struct
@@ -37,6 +37,8 @@ type Game struct {
 	count int
 
 	score int
+
+	speed int
 
 	tatsus           [maxTatsuCount]*tatsu
 	showTatsuIndexes []int
@@ -55,6 +57,7 @@ func NewGame() *Game {
 func (g *Game) init() {
 	g.count = 0
 	g.score = 0
+	g.speed = speed
 	g.showTatsuIndexes = nil
 	g.lastPaiX = 0
 	for i := 0; i < maxTatsuCount; i++ {
@@ -76,17 +79,32 @@ func (g *Game) Update() error {
 			g.mode = modeGame
 		}
 	case modeGame:
+		if g.isSPressed() {
+			if g.speed == 0 {
+				g.speed = speed
+			} else {
+				g.speed = 0
+			}
+		}
+
+		if g.speed == 0 {
+			return nil
+		}
+
 		g.count++
 
 		for i, t := range g.tatsus {
 			if t.visible {
-				t.move(speed)
+				t.move(g.speed)
 				if t.isOutOfScreen() {
 					t.hide()
 					t.revertImage()
+					if len(g.showTatsuIndexes) > 0 {
+						g.showTatsuIndexes = g.showTatsuIndexes[1:]
+					}
 				}
 			} else {
-				if g.count-g.lastPaiX > minTatsuDist && g.count%interval == 0 && rand.Intn(10) == 0 {
+				if g.count-g.lastPaiX > minTatsuDist && g.count%interval == 0 && rand.Intn(interval/2) == 0 {
 					g.lastPaiX = g.count
 					t.show()
 					g.showTatsuIndexes = append(g.showTatsuIndexes, i)
@@ -95,7 +113,7 @@ func (g *Game) Update() error {
 			}
 		}
 
-		g.ground.move(speed)
+		g.ground.move(g.speed)
 
 		if g.isSpacePressed() {
 			if len(g.showTatsuIndexes) == 0 {
@@ -219,6 +237,13 @@ func (g *Game) drawGround(screen *ebiten.Image) {
 // Layout method
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return ScreenX, ScreenY
+}
+
+func (g *Game) isSPressed() bool {
+	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		return true
+	}
+	return false
 }
 
 func (g *Game) isSpacePressed() bool {
